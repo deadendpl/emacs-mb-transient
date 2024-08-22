@@ -1,3 +1,11 @@
 It opens a MusicBrainz website search result, it doesn't use its API.
 
 [[file:screenshots/2024-08-17_08-38-05.png]]
+
+* Installation
+#+begin_src emacs-lisp
+(use-package emacs-mb-transient
+  :ensure nil
+  :vc (:fetcher github :repo "deadendpl/emacs-mb-transient")
+  :commands (mb-transient mb-transient-frame))
+#+end_src

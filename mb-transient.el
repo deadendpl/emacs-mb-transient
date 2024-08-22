@@ -1,4 +1,4 @@
-;;; emacs-mb-transient.el --- Transient menu for MusicBrainz searches  -*- lexical-binding: t; -*-
+;;; mb-transient.el --- Transient menu for MusicBrainz searches  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2024
 
@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'transient)
+(require 'mb-transient-autoloads)
 
 (defvar mb-search-method "indexed"
   "A search method.")
@@ -229,6 +230,7 @@ It also runs `mb-delete-frame'."
   (mb-set-search-method-advanced)
   (setq mb-query (mb-advanced-query-set)))
 
+;;;###autoload
 (transient-define-prefix mb-transient ()
   "Search in MusicBrainz"
   ["Search method" :description (lambda () (concat (propertize "Search method" 'face 'transient-heading) " ("
@@ -296,7 +298,7 @@ It also runs `mb-delete-frame'."
   (switch-to-buffer mb-buffer-name)
   )
 
-
+;;;###autoload
 (defun mb-transient-frame ()
   "Wrapper for creating a frame with selected placeholder buffer,
 and displaying `mb-transient'."
@@ -320,6 +322,6 @@ frame gets deleted."
   (transient-quit-one)
   (mb-delete-frame))
 
-(provide 'emacs-mb-transient)
+(provide 'mb-transient)
 
 ;;; mb-transient.el ends here
