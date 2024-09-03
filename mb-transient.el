@@ -198,10 +198,12 @@
   (setq mb-type (completing-read (format-prompt "Type" nil)
                                  mb-type-list nil t)))
 
-(defun mb--set-query (query)
-  "Sets search query to QUERY."
-  (interactive "sQuery: ")
-    (setq mb-query query))
+(defun mb--set-query (arg)
+  "Sets search query.
+With ARG, it prefills prompt with `mb-query'."
+  (interactive "P")
+  (setq mb-query (read-string "Query: "
+                              (if arg mb-query nil))))
 
 (defun mb--open ()
   "Combines `mb-query', `mb-type', and `mb-search-method' into a
@@ -260,7 +262,8 @@ It also runs `mb--delete-frame'."
   ["Query" :description (lambda () (concat (propertize "Query" 'face 'transient-heading)
                                            (if mb-query
                                                (concat " (" (propertize mb-query 'face 'font-lock-variable-name-face) ")"))))
-   ("<SPC>" "Enter query" mb--set-query :transient t)]
+   ("<SPC>" "Enter query" (lambda () (interactive) (mb--set-query nil)) :transient t)
+   ("C-<SPC>" "Enter query (prefilled)" (lambda () (interactive) (mb--set-query t)) :transient t)]
   ["The rest"
    ("e" "Open" mb--open)
    ("q" "Quit" mb--transient-quit)])
@@ -272,7 +275,8 @@ It also runs `mb--delete-frame'."
   (unless (get-buffer mb-buffer-name)
     (get-buffer-create mb-buffer-name)
     (set-buffer mb-buffer-name)
-    (insert "Welcome to Transient MusicBrainz porcelain!")))
+    (insert "Welcome to Transient MusicBrainz porcelain!")
+    (read-only-mode 1)))
 
 (defun mb--make-frame ()
   "Makes a frame with a placeholder buffer, and switches to that buffer."
