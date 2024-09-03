@@ -6,6 +6,5 @@ It opens a MusicBrainz website search result, it doesn't use its API.
 #+begin_src emacs-lisp
 (use-package emacs-mb-transient
   :ensure nil
-  :vc (:fetcher github :repo "deadendpl/emacs-mb-transient")
-  :commands (mb-transient mb-transient-frame))
+  :vc (:fetcher github :repo "deadendpl/emacs-mb-transient"))
 #+end_src

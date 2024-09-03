@@ -4,6 +4,7 @@
 
 ;; Author:  Oliwier Czerwiński <oliwier.czerwi@proton.me>
 ;; Keywords: convenience
+;; Version: 20240903
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,15 +26,15 @@
 ;;; Code:
 
 (require 'transient)
-(require 'mb-transient-autoloads)
+;; (require 'mb-transient-autoloads)
 
-(defvar mb-search-method "indexed"
+(defvar mb-transient-search-method "indexed"
   "A search method.")
 
-(defvar mb-type "release"
+(defvar mb-transient-type "release"
   "A search type.")
 
-(defconst mb-type-list
+(defconst mb-transient-type-list
   '(annotation
     area
     artist
@@ -52,10 +53,10 @@
     work)
   "List of all available search types.")
 
-(defvar mb-query nil
+(defvar mb-transient-query nil
   "A search query.")
 
-(defconst mb-advanced-syntax-list
+(defconst mb-transient-advanced-syntax-list
   '(added
     address
     aid
@@ -157,173 +158,173 @@
     workaccent)
   "List of all advanced syntax keywords.")
 
-(defvar mb-optimal-width 54
+(defvar mb-transient-optimal-width 54
   "A width optimal for invoking `mb-transient' in a floating frame.")
 
-(defvar mb-optimal-height 27
+(defvar mb-transient-optimal-height 27
   "A height optimal for invoking `mb-transient' in a floating frame.")
 
-(defvar mb-buffer-name "*mb-transient*"
-  "Buffer name used in `mb-make-buffer'.")
+(defvar mb-transient-buffer-name "*mb-transient*"
+  "Buffer name used in `mb-transient-make-buffer'.")
 
-(defvar mb-frame-name "MusicBrainz Emacs Search"
+(defvar mb-transient-frame-name "MusicBrainz Emacs Search"
   "Name of a frame used for displaying `mb-transient'.")
 
-(defun mb--set-search-method (val)
+(defun mb-transient--set-search-method (val)
   "Sets search method to VAL."
   (interactive "s")
-  (setq mb-search-method val))
+  (setq mb-transient-search-method val))
 
-(defun mb--set-search-method-indexed ()
+(defun mb-transient--set-search-method-indexed ()
   "Sets search method to indexed."
   (interactive)
-  (mb--set-search-method "indexed"))
-(defun mb--set-search-method-advanced ()
+  (mb-transient--set-search-method "indexed"))
+(defun mb-transient--set-search-method-advanced ()
   "Sets search method to advanced."
   (interactive)
-  (mb--set-search-method "advanced"))
-(defun mb--set-search-method-direct ()
+  (mb-transient--set-search-method "advanced"))
+(defun mb-transient--set-search-method-direct ()
   "Sets search method to direct."
   (interactive)
-  (mb--set-search-method "direct"))
+  (mb-transient--set-search-method "direct"))
 
-(defun mb--set-type (val)
+(defun mb-transient--set-type (val)
   "Sets search type to VAL."
   (interactive "s")
-  (setq mb-type val))
+  (setq mb-transient-type val))
 
-(defun mb--set-type-full ()
-  "Chooses one of entries in `mb-type-list'."
+(defun mb-transient--set-type-full ()
+  "Chooses one of entries in `mb-transient-type-list'."
   (interactive)
-  (setq mb-type (completing-read (format-prompt "Type" nil)
-                                 mb-type-list nil t)))
+  (setq mb-transient-type (completing-read (format-prompt "Type" nil)
+                                 mb-transient-type-list nil t)))
 
-(defun mb--set-query (arg)
+(defun mb-transient--set-query (arg)
   "Sets search query.
-With ARG, it prefills prompt with `mb-query'."
+With ARG, it prefills prompt with `mb-transient-query'."
   (interactive "P")
-  (setq mb-query (read-string "Query: "
-                              (if arg mb-query nil))))
+  (setq mb-transient-query (read-string "Query: "
+                              (if arg mb-transient-query nil))))
 
-(defun mb--open ()
-  "Combines `mb-query', `mb-type', and `mb-search-method' into a
+(defun mb-transient--open ()
+  "Combines `mb-transient-query', `mb-transient-type', and `mb-transient-search-method' into a
 search URL that gets opened with `browse-url'.
 
-It also runs `mb--delete-frame'."
+It also runs `mb-transient--delete-frame'."
   (interactive)
   (browse-url
-   (concat "https://musicbrainz.org/search?query=" mb-query "&type=" mb-type "&method=" mb-search-method))
-  (mb--delete-frame))
+   (concat "https://musicbrainz.org/search?query=" mb-transient-query "&type=" mb-transient-type "&method=" mb-transient-search-method))
+  (mb-transient--delete-frame))
 
-(defun mb--advanced-query-set ()
+(defun mb-transient--advanced-query-set ()
   "Returns a string valid for doing advanced searches for a search URL."
   (interactive)
   (let ((syntax (completing-read (format-prompt "Advanced syntax" nil)
-                                 mb-advanced-syntax-list nil t)))
+                                 mb-transient-advanced-syntax-list nil t)))
     (when syntax
       (concat syntax ":"
               (read-string (format-prompt syntax nil)))
       )))
 
-(defun mb--advanced-method-setup ()
-  "Sets search query to output of `mb--advanced-query-set'."
+(defun mb-transient--advanced-method-setup ()
+  "Sets search query to output of `mb-transient--advanced-query-set'."
   (interactive)
-  (mb--set-search-method-advanced)
-  (setq mb-query (mb--advanced-query-set)))
+  (mb-transient--set-search-method-advanced)
+  (setq mb-transient-query (mb-transient--advanced-query-set)))
 
-;;;###autoload
+;;;###autoload (autoload 'mb-transient "mb-transient" "Search in MusicBrainz" t)
 (transient-define-prefix mb-transient ()
   "Search in MusicBrainz"
   ["Search method" :description (lambda () (concat (propertize "Search method" 'face 'transient-heading) " ("
-                                                   (propertize mb-search-method 'face 'font-lock-variable-name-face) ")"))
-   ("si" "Indexed" mb--set-search-method-indexed :transient t)
-   ("sa" (lambda () (concat "Advanced Query Syntax (fills " (propertize "Query" 'face 'transient-heading) ")")) mb--advanced-method-setup :transient t)
-   ("sd" "Direct Database Search" mb--set-search-method-direct :transient t)]
+                                                   (propertize mb-transient-search-method 'face 'font-lock-variable-name-face) ")"))
+   ("si" "Indexed" mb-transient--set-search-method-indexed :transient t)
+   ("sa" (lambda () (concat "Advanced Query Syntax (fills " (propertize "Query" 'face 'transient-heading) ")")) mb-transient--advanced-method-setup :transient t)
+   ("sd" "Direct Database Search" mb-transient--set-search-method-direct :transient t)]
   ["Type" :description (lambda () (concat (propertize "Type" 'face 'transient-heading) " ("
-                                          (propertize mb-type 'face 'font-lock-variable-name-face) ")"))
+                                          (propertize mb-transient-type 'face 'font-lock-variable-name-face) ")"))
    :pad-keys t
-   [("t C-a" "annotation" (lambda () (interactive) (mb--set-type "annotation")) :transient t)
-    ("tA" "area" (lambda () (interactive) (mb--set-type "area")) :transient t)
-    ("ta" "artist" (lambda () (interactive) (mb--set-type "artist")) :transient t)
-    ("tc" "cdstub" (lambda () (interactive) (mb--set-type "cdstub")) :transient t)
-    ("td" "doc" (lambda () (interactive) (mb--set-type "doc")) :transient t)
-    ("tE" "editor" (lambda () (interactive) (mb--set-type "editor")) :transient t)
-    ("te" "event" (lambda () (interactive) (mb--set-type "event")) :transient t)
-    ("ti" "instrument" (lambda () (interactive) (mb--set-type "instrument")) :transient t)]
-   [("tl" "label" (lambda () (interactive) (mb--set-type "label")) :transient t)
-    ("tp" "place" (lambda () (interactive) (mb--set-type "place")) :transient t)
-    ("tR" "recording" (lambda () (interactive) (mb--set-type "recording")) :transient t)
-    ("tr" "release" (lambda () (interactive) (mb--set-type "release")) :transient t)
-    ("tg" "release_group" (lambda () (interactive) (mb--set-type "release_group")) :transient t)
-    ("ts" "series" (lambda () (interactive) (mb--set-type "series")) :transient t)
-    ("tt" "tag" (lambda () (interactive) (mb--set-type "tag")) :transient t)
-    ("tw" "work" (lambda () (interactive) (mb--set-type "work")) :transient t)]
+   [("t C-a" "annotation" (lambda () (interactive) (mb-transient--set-type "annotation")) :transient t)
+    ("tA" "area" (lambda () (interactive) (mb-transient--set-type "area")) :transient t)
+    ("ta" "artist" (lambda () (interactive) (mb-transient--set-type "artist")) :transient t)
+    ("tc" "cdstub" (lambda () (interactive) (mb-transient--set-type "cdstub")) :transient t)
+    ("td" "doc" (lambda () (interactive) (mb-transient--set-type "doc")) :transient t)
+    ("tE" "editor" (lambda () (interactive) (mb-transient--set-type "editor")) :transient t)
+    ("te" "event" (lambda () (interactive) (mb-transient--set-type "event")) :transient t)
+    ("ti" "instrument" (lambda () (interactive) (mb-transient--set-type "instrument")) :transient t)]
+   [("tl" "label" (lambda () (interactive) (mb-transient--set-type "label")) :transient t)
+    ("tp" "place" (lambda () (interactive) (mb-transient--set-type "place")) :transient t)
+    ("tR" "recording" (lambda () (interactive) (mb-transient--set-type "recording")) :transient t)
+    ("tr" "release" (lambda () (interactive) (mb-transient--set-type "release")) :transient t)
+    ("tg" "release_group" (lambda () (interactive) (mb-transient--set-type "release_group")) :transient t)
+    ("ts" "series" (lambda () (interactive) (mb-transient--set-type "series")) :transient t)
+    ("tt" "tag" (lambda () (interactive) (mb-transient--set-type "tag")) :transient t)
+    ("tw" "work" (lambda () (interactive) (mb-transient--set-type "work")) :transient t)]
    ]
   ["Query" :description (lambda () (concat (propertize "Query" 'face 'transient-heading)
-                                           (if mb-query
-                                               (concat " (" (propertize mb-query 'face 'font-lock-variable-name-face) ")"))))
-   ("<SPC>" "Enter query" (lambda () (interactive) (mb--set-query nil)) :transient t)
-   ("C-<SPC>" "Enter query (prefilled)" (lambda () (interactive) (mb--set-query t)) :transient t)]
+                                           (if mb-transient-query
+                                               (concat " (" (propertize mb-transient-query 'face 'font-lock-variable-name-face) ")"))))
+   ("<SPC>" "Enter query" (lambda () (interactive) (mb-transient--set-query nil)) :transient t)
+   ("C-<SPC>" "Enter query (prefilled)" (lambda () (interactive) (mb-transient--set-query t)) :transient t)]
   ["The rest"
-   ("e" "Open" mb--open)
-   ("q" "Quit" mb--transient-quit)])
+   ("e" "Open" mb-transient--open)
+   ("q" "Quit" mb-transient--quit)])
 
 ;;; Making it as an external frame that will make it easy to invoke out of Emacs
 
-(defun mb--make-buffer ()
-  "Generates a buffer with name of `mb-buffer-name' with a placeholder text."
-  (unless (get-buffer mb-buffer-name)
-    (get-buffer-create mb-buffer-name)
-    (set-buffer mb-buffer-name)
+(defun mb-transient--make-buffer ()
+  "Generates a buffer with name of `mb-transient-buffer-name' with a placeholder text."
+  (unless (get-buffer mb-transient-buffer-name)
+    (get-buffer-create mb-transient-buffer-name)
+    (set-buffer mb-transient-buffer-name)
     (insert "Welcome to Transient MusicBrainz porcelain!")
     (read-only-mode 1)))
 
-(defun mb--make-frame ()
+(defun mb-transient--make-frame ()
   "Makes a frame with a placeholder buffer, and switches to that buffer."
-  (unless (get-buffer mb-buffer-name)
-    (mb--make-buffer))
-  (let ((mb-frame (make-frame
-                   `((name . ,mb-frame-name)
-                     (width . ,mb-optimal-width)
-                     ;; (height . ,mb-optimal-height)
+  (unless (get-buffer mb-transient-buffer-name)
+    (mb-transient--make-buffer))
+  (let ((mb-transient-frame (make-frame
+                   `((name . ,mb-transient-frame-name)
+                     (width . ,mb-transient-optimal-width)
+                     ;; (height . ,mb-transient-optimal-height)
                      ))))
-    (with-selected-frame mb-frame (switch-to-buffer mb-buffer-name)))
+    (with-selected-frame mb-transient-frame (switch-to-buffer mb-transient-buffer-name)))
   )
 
-(defun mb--current-frame ()
-  "Edits current frame to use name in `mb-frame-name' and display only buffer `mb-buffer-name'."
-  (modify-frame-parameters nil `((name . ,mb-frame-name)
-                                 ;; (width . ,mb-optimal-width)
+(defun mb-transient--current-frame ()
+  "Edits current frame to use name in `mb-transient-frame-name' and display only buffer `mb-transient-buffer-name'."
+  (modify-frame-parameters nil `((name . ,mb-transient-frame-name)
+                                 ;; (width . ,mb-transient-optimal-width)
                                  ))
-  (unless (get-buffer mb-buffer-name)
-    (mb--make-buffer))
+  (unless (get-buffer mb-transient-buffer-name)
+    (mb-transient--make-buffer))
   ;; (delete-other-windows)
-  (switch-to-buffer mb-buffer-name)
+  (switch-to-buffer mb-transient-buffer-name)
   )
 
 ;;;###autoload
-(defun mb-transient-frame ()
+(defun mb-transient-transient-frame ()
   "Wrapper for creating a frame with selected placeholder buffer,
 and displaying `mb-transient'."
   (interactive)
-  (mb--make-frame)
-  ;; (mb--current-frame)
-  (select-frame-by-name mb-frame-name)
+  (mb-transient--make-frame)
+  ;; (mb-transient--current-frame)
+  (select-frame-by-name mb-transient-frame-name)
   (mb-transient)
   )
 
-(defun mb--delete-frame ()
-  "When run in a frame whose name matches `mb-frame-name', that
+(defun mb-transient--delete-frame ()
+  "When run in a frame whose name matches `mb-transient-frame-name', that
 frame gets deleted."
   (interactive)
-  (if (string-equal (cdr (assoc 'name (frame-parameters))) mb-frame-name)
+  (if (string-equal (cdr (assoc 'name (frame-parameters))) mb-transient-frame-name)
       (delete-frame)))
 
-(defun mb--transient-quit ()
-  "Quits transient menu, and invokes `mb--delete-frame'."
+(defun mb-transient--quit ()
+  "Quits transient menu, and invokes `mb-transient--delete-frame'."
   (interactive)
   (transient-quit-one)
-  (mb--delete-frame))
+  (mb-transient--delete-frame))
 
 (provide 'mb-transient)
 
