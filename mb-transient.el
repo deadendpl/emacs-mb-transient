@@ -4,7 +4,7 @@
 
 ;; Author:  Oliwier Czerwiński <oliwier.czerwi@proton.me>
 ;; Keywords: convenience
-;; Version: 20240903
+;; Version: 20240921
 ;; URL: https://github.com/deadendpl/emacs-mb-transient
 
 ;; This program is free software; you can redistribute it and/or modify
