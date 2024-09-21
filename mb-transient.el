@@ -5,6 +5,7 @@
 ;; Author:  Oliwier Czerwiński <oliwier.czerwi@proton.me>
 ;; Keywords: convenience
 ;; Version: 20240903
+;; URL: https://github.com/deadendpl/emacs-mb-transient
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -26,7 +27,6 @@
 ;;; Code:
 
 (require 'transient)
-;; (require 'mb-transient-autoloads)
 
 (defvar mb-transient-search-method "indexed"
   "A search method.")
@@ -232,16 +232,30 @@ It also runs `mb-transient--delete-frame'."
   (mb-transient--set-search-method-advanced)
   (setq mb-transient-query (mb-transient--advanced-query-set)))
 
+(defun mb-transient--desc-setup (x)
+  "Sets up descriptions in `mb-transient'."
+  (cond
+   ((eq x 'search-method)
+    (concat (propertize "Search method" 'face 'transient-heading) " ("
+            (propertize mb-transient-search-method 'face 'font-lock-variable-name-face) ")"))
+   ((eq x 'type)
+    (concat (propertize "Type" 'face 'transient-heading) " ("
+            (propertize mb-transient-type 'face 'font-lock-variable-name-face) ")"))
+   ((eq x 'query)
+    (concat (propertize "Query" 'face 'transient-heading)
+            (if mb-transient-query
+                (concat " (" (propertize mb-transient-query 'face 'font-lock-variable-name-face) ")"))))
+   ((eq x 'advanced-query)
+    (concat "Advanced Query Syntax (fills " (propertize "Query" 'face 'transient-heading) ")"))))
+
 ;;;###autoload (autoload 'mb-transient "mb-transient" "Search in MusicBrainz" t)
 (transient-define-prefix mb-transient ()
   "Search in MusicBrainz"
-  ["Search method" :description (lambda () (concat (propertize "Search method" 'face 'transient-heading) " ("
-                                                   (propertize mb-transient-search-method 'face 'font-lock-variable-name-face) ")"))
+  ["Search method" :description (lambda () (mb-transient--desc-setup 'search-method))
    ("si" "Indexed" mb-transient--set-search-method-indexed :transient t)
-   ("sa" (lambda () (concat "Advanced Query Syntax (fills " (propertize "Query" 'face 'transient-heading) ")")) mb-transient--advanced-method-setup :transient t)
+   ("sa" (lambda () (mb-transient--desc-setup 'advanced-query)) mb-transient--advanced-method-setup :transient t)
    ("sd" "Direct Database Search" mb-transient--set-search-method-direct :transient t)]
-  ["Type" :description (lambda () (concat (propertize "Type" 'face 'transient-heading) " ("
-                                          (propertize mb-transient-type 'face 'font-lock-variable-name-face) ")"))
+  ["Type" :description (lambda () (mb-transient--desc-setup 'type))
    :pad-keys t
    [("t C-a" "annotation" (lambda () (interactive) (mb-transient--set-type "annotation")) :transient t)
     ("tA" "area" (lambda () (interactive) (mb-transient--set-type "area")) :transient t)
@@ -260,9 +274,7 @@ It also runs `mb-transient--delete-frame'."
     ("tt" "tag" (lambda () (interactive) (mb-transient--set-type "tag")) :transient t)
     ("tw" "work" (lambda () (interactive) (mb-transient--set-type "work")) :transient t)]
    ]
-  ["Query" :description (lambda () (concat (propertize "Query" 'face 'transient-heading)
-                                           (if mb-transient-query
-                                               (concat " (" (propertize mb-transient-query 'face 'font-lock-variable-name-face) ")"))))
+  ["Query" :description (lambda () (mb-transient--desc-setup 'query))
    ("<SPC>" "Enter query" (lambda () (interactive) (mb-transient--set-query nil)) :transient t)
    ("C-<SPC>" "Enter query (prefilled)" (lambda () (interactive) (mb-transient--set-query t)) :transient t)]
   ["The rest"
@@ -284,10 +296,10 @@ It also runs `mb-transient--delete-frame'."
   (unless (get-buffer mb-transient-buffer-name)
     (mb-transient--make-buffer))
   (let ((mb-transient-frame (make-frame
-                   `((name . ,mb-transient-frame-name)
-                     (width . ,mb-transient-optimal-width)
-                     ;; (height . ,mb-transient-optimal-height)
-                     ))))
+                             `((name . ,mb-transient-frame-name)
+                               (width . ,mb-transient-optimal-width)
+                               ;; (height . ,mb-transient-optimal-height)
+                               ))))
     (with-selected-frame mb-transient-frame (switch-to-buffer mb-transient-buffer-name)))
   )
 
@@ -303,7 +315,7 @@ It also runs `mb-transient--delete-frame'."
   )
 
 ;;;###autoload
-(defun mb-transient-transient-frame ()
+(defun mb-transient-frame ()
   "Wrapper for creating a frame with selected placeholder buffer,
 and displaying `mb-transient'."
   (interactive)
@@ -314,8 +326,7 @@ and displaying `mb-transient'."
   )
 
 (defun mb-transient--delete-frame ()
-  "When run in a frame whose name matches `mb-transient-frame-name', that
-frame gets deleted."
+  "If current frame's name matches `mb-transient-frame-name', it gets deleted."
   (interactive)
   (if (string-equal (cdr (assoc 'name (frame-parameters))) mb-transient-frame-name)
       (delete-frame)))

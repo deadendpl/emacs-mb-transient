@@ -4,7 +4,6 @@ It opens a MusicBrainz website search result, it doesn't use its API.
 
 * Installation
 #+begin_src emacs-lisp
-(use-package emacs-mb-transient
-  :ensure nil
+(use-package mb-transient
   :vc (:fetcher github :repo "deadendpl/emacs-mb-transient"))
 #+end_src
