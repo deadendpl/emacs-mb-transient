@@ -4,7 +4,7 @@
 
 ;; Author:  Oliwier Czerwiński <oliwier.czerwi@proton.me>
 ;; Keywords: convenience
-;; Version: 20240921
+;; Version: 20240922
 ;; URL: https://github.com/deadendpl/emacs-mb-transient
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -158,17 +158,8 @@
     workaccent)
   "List of all advanced syntax keywords.")
 
-(defvar mb-transient-optimal-width 54
-  "A width optimal for invoking `mb-transient' in a floating frame.")
-
-(defvar mb-transient-optimal-height 27
-  "A height optimal for invoking `mb-transient' in a floating frame.")
-
-(defvar mb-transient-buffer-name "*mb-transient*"
-  "Buffer name used in `mb-transient-make-buffer'.")
-
-(defvar mb-transient-frame-name "MusicBrainz Emacs Search"
-  "Name of a frame used for displaying `mb-transient'.")
+(defvar mb-transient-exit-hook nil
+  "Hook run after leaving `mb-transient'.")
 
 (defun mb-transient--set-search-method (val)
   "Sets search method to VAL."
@@ -208,13 +199,12 @@ With ARG, it prefills prompt with `mb-transient-query'."
 
 (defun mb-transient--open ()
   "Combines `mb-transient-query', `mb-transient-type', and `mb-transient-search-method' into a
-search URL that gets opened with `browse-url'.
-
-It also runs `mb-transient--delete-frame'."
+search URL that gets opened with `browse-url'."
   (interactive)
   (browse-url
    (concat "https://musicbrainz.org/search?query=" mb-transient-query "&type=" mb-transient-type "&method=" mb-transient-search-method))
-  (mb-transient--delete-frame))
+  (run-hooks 'mb-transient-exit-hook)
+  )
 
 (defun mb-transient--advanced-query-set ()
   "Returns a string valid for doing advanced searches for a search URL."
@@ -281,61 +271,12 @@ It also runs `mb-transient--delete-frame'."
    ("e" "Open" mb-transient--open)
    ("q" "Quit" mb-transient--quit)])
 
-;;; Making it as an external frame that will make it easy to invoke out of Emacs
-
-(defun mb-transient--make-buffer ()
-  "Generates a buffer with name of `mb-transient-buffer-name' with a placeholder text."
-  (unless (get-buffer mb-transient-buffer-name)
-    (get-buffer-create mb-transient-buffer-name)
-    (set-buffer mb-transient-buffer-name)
-    (insert "Welcome to Transient MusicBrainz porcelain!")
-    (read-only-mode 1)))
-
-(defun mb-transient--make-frame ()
-  "Makes a frame with a placeholder buffer, and switches to that buffer."
-  (unless (get-buffer mb-transient-buffer-name)
-    (mb-transient--make-buffer))
-  (let ((mb-transient-frame (make-frame
-                             `((name . ,mb-transient-frame-name)
-                               (width . ,mb-transient-optimal-width)
-                               ;; (height . ,mb-transient-optimal-height)
-                               ))))
-    (with-selected-frame mb-transient-frame (switch-to-buffer mb-transient-buffer-name)))
-  )
-
-(defun mb-transient--current-frame ()
-  "Edits current frame to use name in `mb-transient-frame-name' and display only buffer `mb-transient-buffer-name'."
-  (modify-frame-parameters nil `((name . ,mb-transient-frame-name)
-                                 ;; (width . ,mb-transient-optimal-width)
-                                 ))
-  (unless (get-buffer mb-transient-buffer-name)
-    (mb-transient--make-buffer))
-  ;; (delete-other-windows)
-  (switch-to-buffer mb-transient-buffer-name)
-  )
-
-;;;###autoload
-(defun mb-transient-frame ()
-  "Wrapper for creating a frame with selected placeholder buffer,
-and displaying `mb-transient'."
-  (interactive)
-  (mb-transient--make-frame)
-  ;; (mb-transient--current-frame)
-  (select-frame-by-name mb-transient-frame-name)
-  (mb-transient)
-  )
-
-(defun mb-transient--delete-frame ()
-  "If current frame's name matches `mb-transient-frame-name', it gets deleted."
-  (interactive)
-  (if (string-equal (cdr (assoc 'name (frame-parameters))) mb-transient-frame-name)
-      (delete-frame)))
-
 (defun mb-transient--quit ()
-  "Quits transient menu, and invokes `mb-transient--delete-frame'."
+  "Quits transient menu."
   (interactive)
   (transient-quit-one)
-  (mb-transient--delete-frame))
+  (run-hooks 'mb-transient-exit-hook)
+  )
 
 (provide 'mb-transient)
 
