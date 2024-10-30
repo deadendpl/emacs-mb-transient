@@ -4,7 +4,7 @@
 
 ;; Author:  Oliwier Czerwiński <oliwier.czerwi@proton.me>
 ;; Keywords: convenience
-;; Version: 20240922
+;; Version: 20241030
 ;; URL: https://github.com/deadendpl/emacs-mb-transient
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -158,8 +158,9 @@
     workaccent)
   "List of all advanced syntax keywords.")
 
-(defvar mb-transient-exit-hook nil
-  "Hook run after leaving `mb-transient'.")
+(defcustom mb-transient-exit-hook nil
+  "Hook run after leaving `mb-transient'."
+  :type 'hook)
 
 (defun mb-transient--set-search-method (val)
   "Sets search method to VAL."
@@ -198,8 +199,9 @@ With ARG, it prefills prompt with `mb-transient-query'."
                               (if arg mb-transient-query nil))))
 
 (defun mb-transient--open ()
-  "Combines `mb-transient-query', `mb-transient-type', and `mb-transient-search-method' into a
-search URL that gets opened with `browse-url'."
+  "Combines `mb-transient-query', `mb-transient-type', and
+`mb-transient-search-method' into a search URL that gets opened
+with `browse-url'."
   (interactive)
   (browse-url
    (concat "https://musicbrainz.org/search?query=" mb-transient-query "&type=" mb-transient-type "&method=" mb-transient-search-method))
@@ -224,19 +226,19 @@ search URL that gets opened with `browse-url'."
 
 (defun mb-transient--desc-setup (x)
   "Sets up descriptions in `mb-transient'."
-  (cond
-   ((eq x 'search-method)
-    (concat (propertize "Search method" 'face 'transient-heading) " ("
-            (propertize mb-transient-search-method 'face 'font-lock-variable-name-face) ")"))
-   ((eq x 'type)
-    (concat (propertize "Type" 'face 'transient-heading) " ("
-            (propertize mb-transient-type 'face 'font-lock-variable-name-face) ")"))
-   ((eq x 'query)
-    (concat (propertize "Query" 'face 'transient-heading)
-            (if mb-transient-query
-                (concat " (" (propertize mb-transient-query 'face 'font-lock-variable-name-face) ")"))))
-   ((eq x 'advanced-query)
-    (concat "Advanced Query Syntax (fills " (propertize "Query" 'face 'transient-heading) ")"))))
+  (pcase x
+    ('search-method
+     (concat (propertize "Search method" 'face 'transient-heading) " ("
+             (propertize mb-transient-search-method 'face 'font-lock-variable-name-face) ")"))
+    ('type
+     (concat (propertize "Type" 'face 'transient-heading) " ("
+             (propertize mb-transient-type 'face 'font-lock-variable-name-face) ")"))
+    ('query
+     (concat (propertize "Query" 'face 'transient-heading)
+             (if mb-transient-query
+                 (concat " (" (propertize mb-transient-query 'face 'font-lock-variable-name-face) ")"))))
+    ('advanced-query
+     (concat "Advanced Query Syntax (fills " (propertize "Query" 'face 'transient-heading) ")"))))
 
 ;;;###autoload (autoload 'mb-transient "mb-transient" "Search in MusicBrainz" t)
 (transient-define-prefix mb-transient ()
