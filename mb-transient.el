@@ -4,7 +4,8 @@
 
 ;; Author:  Oliwier Czerwiński <oliwier.czerwi@proton.me>
 ;; Keywords: convenience
-;; Version: 20241030
+;; Package-Requires: (transient)
+;; Version: 20250129
 ;; URL: https://github.com/deadendpl/emacs-mb-transient
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -185,12 +186,6 @@
   (interactive "s")
   (setq mb-transient-type val))
 
-(defun mb-transient--set-type-full ()
-  "Chooses one of entries in `mb-transient-type-list'."
-  (interactive)
-  (setq mb-transient-type (completing-read (format-prompt "Type" nil)
-                                 mb-transient-type-list nil t)))
-
 (defun mb-transient--set-query (arg)
   "Sets search query.
 With ARG, it prefills prompt with `mb-transient-query'."
@@ -235,8 +230,8 @@ with `browse-url'."
              (propertize mb-transient-type 'face 'font-lock-variable-name-face) ")"))
     ('query
      (concat (propertize "Query" 'face 'transient-heading)
-             (if mb-transient-query
-                 (concat " (" (propertize mb-transient-query 'face 'font-lock-variable-name-face) ")"))))
+             (unless (or (string= mb-transient-query "") (not mb-transient-query))
+               (concat " (" (propertize mb-transient-query 'face 'font-lock-variable-name-face) ")"))))
     ('advanced-query
      (concat "Advanced Query Syntax (fills " (propertize "Query" 'face 'transient-heading) ")"))))
 
@@ -268,7 +263,8 @@ with `browse-url'."
    ]
   ["Query" :description (lambda () (mb-transient--desc-setup 'query))
    ("<SPC>" "Enter query" (lambda () (interactive) (mb-transient--set-query nil)) :transient t)
-   ("C-<SPC>" "Enter query (prefilled)" (lambda () (interactive) (mb-transient--set-query t)) :transient t)]
+   ("C-<SPC>" "Enter query (prefilled)" (lambda () (interactive) (mb-transient--set-query t)) :transient t)
+   ("C-y" "Yank" (lambda () (interactive) (setq mb-transient-query (car kill-ring))) :transient t)]
   ["The rest"
    ("e" "Open" mb-transient--open)
    ("q" "Quit" mb-transient--quit)])
